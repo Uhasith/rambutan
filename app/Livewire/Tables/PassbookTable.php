@@ -14,7 +14,7 @@ use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 
 final class PassbookTable extends PowerGridComponent
 {
-    public string $tableName = 'passbook-table-z0qxnd-table';
+    public string $tableName = 'passbook-table-kmm8lm-table';
 
     public function setUp(): array
     {
@@ -41,12 +41,47 @@ final class PassbookTable extends PowerGridComponent
 
     public function fields(): PowerGridFields
     {
-        return PowerGrid::fields();
+        return PowerGrid::fields()
+            ->add('id')
+            ->add('address')
+            ->add('address_line_1')
+            ->add('address_line_2')
+            ->add('city')
+            ->add('account_number')
+            ->add('created_at');
     }
 
     public function columns(): array
     {
         return [
+            Column::make('Id', 'id'),
+            Column::make('Address', 'address')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('Address line 1', 'address_line_1')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('Address line 2', 'address_line_2')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('City', 'city')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('Account number', 'account_number')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('Created at', 'created_at_formatted', 'created_at')
+                ->sortable(),
+
+            Column::make('Created at', 'created_at')
+                ->sortable()
+                ->searchable(),
+
             Column::action('Action')
         ];
     }
