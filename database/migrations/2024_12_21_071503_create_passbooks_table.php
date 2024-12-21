@@ -18,10 +18,10 @@ return new class extends Migration
             $table->string('address_line_1');
             $table->string('address_line_2')->nullable();
             $table->string('city');
-            $table->date('book_date');
+            $table->datetime('book_date');
             $table->string('account_number');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->datetime('start_date');
+            $table->datetime('end_date');
             $table->string('bank_name');
             $table->string('forward_balance');
             $table->string('salary')->nullable();
