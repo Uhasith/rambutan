@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Passbook extends Model
 {
     protected $fillable = [
-        'customerName',
+        'customer_name',
         'address',
         'address_line_1',
         'address_line_2',
         'city',
-        'bookDate',
+        'book_date',
         'account_number',
         'startDate',
         'endDate',
-        'bankName',
-        'forwardBalance',
-        'monthlySalary',
-        'salaryDate',
+        'bank_name',
+        'forward_balance',
+        'salary',
+        'salary_date',
     ];
 }
