@@ -1,9 +1,16 @@
 <?php
 
 use Livewire\Volt\Volt;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return redirect()->route('login');
+});
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
@@ -13,6 +20,6 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-Volt::route('/home', 'pages.home')->name('home');
+Volt::route('/home', 'pages.home.home')->name('home');
 
 require __DIR__.'/auth.php';
