@@ -14,7 +14,7 @@ use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 
 final class PassbookTable extends PowerGridComponent
 {
-    public string $tableName = 'passbook-table-kmm8lm-table';
+    public string $tableName = 'PassbookTable';
 
     public function setUp(): array
     {

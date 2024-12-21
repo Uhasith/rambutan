@@ -14,18 +14,18 @@ return new class extends Migration
         Schema::create('passbooks', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name');
+            $table->string('bank_name');
+            $table->string('account_number');
+            $table->date('book_date');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->integer('forward_balance');
+            $table->integer('salary')->nullable();
+            $table->integer('salary_date')->nullable();
             $table->string('address');
             $table->string('address_line_1');
             $table->string('address_line_2')->nullable();
             $table->string('city');
-            $table->datetime('book_date');
-            $table->string('account_number');
-            $table->datetime('start_date');
-            $table->datetime('end_date');
-            $table->string('bank_name');
-            $table->string('forward_balance');
-            $table->string('salary')->nullable();
-            $table->integer('salary_date')->nullable();
             $table->timestamps();
         });
     }
