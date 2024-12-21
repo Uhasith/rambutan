@@ -18,6 +18,7 @@ new class extends Component {
     public $forward_balance = '';
     public $salary = '';
     public $salary_date = '';
+    public $passbookModal;
 
     public function rules()
     {
@@ -59,14 +60,14 @@ new class extends Component {
 
         $this->reset();
 
-        $this->dispatch('closeModal', 'passbookCreateModal');
+        $this->passbookModal = false;
 
         $this->dispatch('pg:eventRefresh-PassbookTable');
     }
 }; ?>
 
 <div>
-    <x-wui-modal name="passbookCreateModal">
+    <x-wui-modal name="passbookCreateModal" wire:model="passbookModal">
         <x-wui-card title="New PassBook Create">
             <form wire:submit="create_passbook">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
