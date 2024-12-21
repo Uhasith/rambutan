@@ -15,11 +15,24 @@ new class extends Component {
     public string $forward_balance = '';
     public string $salary = '';
     public string $salary_date = '';
+
+    public function create_passbook(): void
+    {
+        $validated = $this->validate([
+            'customer_name' => ['required', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'account_number' => ['required', 'string', 'max:255'],
+            'book_date' => ['required', 'string', 'max:255'],
+            'bank_name' => ['required', 'string', 'max:255'],
+        ]);
+    }
 }; ?>
 
 <div>
     <x-wui-modal name="passbookCreateModal">
         <x-wui-card title="New PassBook Create">
+        <form wire:submit="create_passbook">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 min-w-5xl">
             <x-wui-input
                 label="Customer Name"
@@ -64,11 +77,12 @@ new class extends Component {
             <x-wui-input
                 label="Address Line 2"
                 wire:model="address_line_2" placeholder="enter address line 2" />
-
-            <x-wui-input
-                label="Bank Name"
-                wire:model="bank_name" placeholder="enter bank name" />
-
+            <x-wui-select
+                        label="Select Bank"
+                        wire:model="bank_name"
+                        placeholder="Select one bank name"
+                        :options="['Commercial', 'BOC', 'Seylan', 'Sampath','NSB']"
+                    />
             <x-wui-input
                 label="Forward Balance"
                 wire:model="forward_balance" placeholder="enter forward balance" />
@@ -84,8 +98,9 @@ new class extends Component {
             <x-slot name="footer" class="flex justify-end gap-x-4">
                 <x-wui-button flat label="Cancel" x-on:click="close" />
 
-            <x-wui-button primary label="Save Deatails" wire:click="agree" />
+            <x-wui-button primary label="Save Deatails" type="submit" />
             </x-slot>
         </x-wui-card>
+        </form>
     </x-wui-modal>
 </div>
