@@ -2,6 +2,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import wireuiConfig from "./vendor/wireui/wireui/tailwind.config.js";
 import powerGridConfig from "./vendor/power-components/livewire-powergrid/tailwind.config.js";
+const colors = require("tailwindcss/colors");
 
 /** @type {import('tailwindcss').Config} */
 export default {
