@@ -114,15 +114,19 @@ class GenerateRambutanService
         while ($remainingTransactions > 0) {
             $transactionDate = $businessDays[array_rand($businessDays)];
 
+            // Avoid duplicate dates with salary
             if (in_array($transactionDate, $usedDates)) {
                 continue;
             }
 
             $usedDates[] = $transactionDate;
 
-            if (rand(0, 1)) {
-                // Withdrawal
-                $amount = rand(500, 5000);
+            // Randomly decide transaction type
+            $transactionType = rand(0, 2); // 0 = Cash Deposit, 1 = Cash Withdrawal, 2 = ATM Withdrawal
+
+            if ($transactionType === 1) {
+                // Cash Withdrawal
+                $amount = $this->generateRealisticWithdrawal();
                 if ($currentBalance - $amount < 0) {
                     continue;
                 }
@@ -135,9 +139,27 @@ class GenerateRambutanService
                     'withdrawalAmount' => $amount,
                     'balance' => $currentBalance,
                 ];
+            } elseif ($transactionType === 2) {
+                // ATM Withdrawal with Service Fee
+                $amount = $this->generateRealisticATMWithdrawal();
+                $serviceFee = 5; // Fixed service fee
+                $totalDeduction = $amount + $serviceFee;
+
+                if ($currentBalance - $totalDeduction < 0) {
+                    continue;
+                }
+
+                $currentBalance -= $totalDeduction;
+                $transactions[] = [
+                    'date' => $transactionDate,
+                    'depositType' => 'ATM',
+                    'depositAmount' => null,
+                    'withdrawalAmount' => $totalDeduction,
+                    'balance' => $currentBalance,
+                ];
             } else {
-                // Deposit
-                $amount = rand(500, 10000);
+                // Cash Deposit
+                $amount = $this->generateRealisticDeposit();
                 $currentBalance += $amount;
                 $transactions[] = [
                     'date' => $transactionDate,
@@ -152,6 +174,25 @@ class GenerateRambutanService
         }
 
         return $transactions;
+    }
+
+    private function generateRealisticATMWithdrawal()
+    {
+        // Generate ATM withdrawal amounts rounded to the nearest 100
+        $baseAmount = rand(100, 2000);
+        return ceil($baseAmount / 100) * 100; // Round to nearest 100
+    }
+
+    private function generateRealisticDeposit()
+    {
+        $baseAmount = rand(500, 10000);
+        return $baseAmount;
+    }
+
+    private function generateRealisticWithdrawal()
+    {
+        $baseAmount = rand(100, 5000);
+        return $baseAmount;
     }
 
     private function applyInterestAndTax($transactions, $businessDays, &$currentBalance)
