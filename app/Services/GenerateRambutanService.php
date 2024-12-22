@@ -23,7 +23,7 @@ class GenerateRambutanService
         $startDate = '2024-01-01';
         $endDate = '2024-11-30';
 
-        $forwardBalance = 85766.70;
+        $forwardBalance = 42883.35;
         $transactionCount = 97;
         $salaryDate = 15;
         $salaryAmount = 50000;
@@ -54,7 +54,7 @@ class GenerateRambutanService
         // Initial forward balance
         $transactions[] = [
             'date' => $businessDays[0],
-            'depositType' => 'BF',
+            'depositType' => 'CWD',
             'depositAmount' => $forwardBalance,
             'withdrawalAmount' => null,
             'balance' => $currentBalance,
