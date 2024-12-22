@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class GenerateRambutanService
 {
-    public function start_here()
+    public function getRecords()
     {
         $customerName = 'MR G A KANTHA';
         $address = 'NO. 33/2/B,';
@@ -20,15 +20,13 @@ class GenerateRambutanService
         $bookDate = '19-08-2023';
         $account_number = '8023485507';
 
-        $startDate = '2023-01-01';
-        $endDate = '2023-12-31';
+        $startDate = '2024-01-01';
+        $endDate = '2024-11-30';
 
         $forwardBalance = 85766.70;
         $transactionCount = 97;
         $salaryDate = 15;
         $salaryAmount = 50000;
-
-        Log::info('Start Here');
 
         $GLOBALS['bankHolidays'] = $this->getBankHolidaysFromICS($startDate, $endDate);
         $businessDays = $this->getWorkingDaysFromICS($startDate, $endDate);
@@ -59,7 +57,7 @@ class GenerateRambutanService
             'depositType' => 'BF',
             'depositAmount' => $forwardBalance,
             'withdrawalAmount' => null,
-            'balance' => $forwardBalance,
+            'balance' => $currentBalance,
         ];
 
         // Add salary transactions
@@ -79,23 +77,43 @@ class GenerateRambutanService
 
         $transactions = array_merge($transactions, $additionalTransactions);
 
+        // Calculate interest and withholding tax at the end of each month
+        $transactions = $this->applyInterestAndTax($transactions, $businessDays, $currentBalance);
+
         // Sort transactions by date
         usort($transactions, function ($a, $b) {
             return strtotime($a['date']) - strtotime($b['date']);
         });
 
+        // Recalculate the balances sequentially
+        $this->recalculateBalances($transactions, $forwardBalance);
+
         return $transactions;
+    }
+
+    private function recalculateBalances(&$transactions, $startingBalance)
+    {
+        $currentBalance = $startingBalance;
+
+        foreach ($transactions as &$transaction) {
+            if ($transaction['depositAmount'] !== null) {
+                $currentBalance += $transaction['depositAmount'];
+            } elseif ($transaction['withdrawalAmount'] !== null) {
+                $currentBalance -= $transaction['withdrawalAmount'];
+            }
+
+            $transaction['balance'] = $currentBalance;
+        }
     }
 
     private function generateAdditionalTransactions($businessDays, $salaryDates, &$currentBalance, $remainingTransactions)
     {
         $transactions = [];
-        $usedDates = $salaryDates; // Prevent duplicate dates with salary
+        $usedDates = $salaryDates;
 
         while ($remainingTransactions > 0) {
             $transactionDate = $businessDays[array_rand($businessDays)];
 
-            // Ensure no duplicate dates with salary
             if (in_array($transactionDate, $usedDates)) {
                 continue;
             }
@@ -131,6 +149,39 @@ class GenerateRambutanService
             }
 
             $remainingTransactions--;
+        }
+
+        return $transactions;
+    }
+
+    private function applyInterestAndTax($transactions, $businessDays, &$currentBalance)
+    {
+        $lastDays = $this->getLastBusinessDaysOfMonths($businessDays);
+
+        foreach ($lastDays as $lastDay) {
+            // Calculate interest
+            $interest = round($currentBalance * 0.0015, 2);
+            $currentBalance += $interest;
+
+            $transactions[] = [
+                'date' => $lastDay,
+                'depositType' => 'INT',
+                'depositAmount' => $interest,
+                'withdrawalAmount' => null,
+                'balance' => $currentBalance,
+            ];
+
+            // Calculate withholding tax
+            $tax = round($interest * 0.05, 2);
+            $currentBalance -= $tax;
+
+            $transactions[] = [
+                'date' => $lastDay,
+                'depositType' => 'WHT',
+                'depositAmount' => null,
+                'withdrawalAmount' => $tax,
+                'balance' => $currentBalance,
+            ];
         }
 
         return $transactions;
@@ -193,6 +244,30 @@ class GenerateRambutanService
             }
         }
         return $workingDays;
+    }
+
+    private function getLastBusinessDaysOfMonths($businessDays)
+    {
+        $lastDays = [];
+        $currentMonth = '';
+        $lastDate = null;
+
+        foreach ($businessDays as $day) {
+            $month = date('Y-m', strtotime($day));
+            if ($month !== $currentMonth) {
+                if ($currentMonth && $lastDate) {
+                    $lastDays[] = $lastDate;
+                }
+                $currentMonth = $month;
+            }
+            $lastDate = $day;
+        }
+
+        if (!empty($lastDate)) {
+            $lastDays[] = $lastDate;
+        }
+
+        return $lastDays;
     }
 
     private function parseICS($year)

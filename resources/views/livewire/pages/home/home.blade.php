@@ -9,6 +9,6 @@ new class extends Component {}; ?>
         <x-wui-mini-button primary icon="plus" x-on:click="$openModal('passbookCreateModal')"
             x-tooltip.placement.bottom.raw="Create Order" />
     </div>
-    <livewire:tables.passbook-table />
     <livewire:pages.home.components.passbook-create-modal />
+    <livewire:tables.passbook-table />
 </div>

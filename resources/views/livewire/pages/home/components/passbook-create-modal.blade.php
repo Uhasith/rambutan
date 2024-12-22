@@ -41,39 +41,42 @@ new class extends Component {
 
     public function create_passbook(): void
     {
-        // $this->validate();
+        $this->validate();
 
-        // Passbook::create([
-        //     'customer_name' => $this->customer_name,
-        //     'address' => $this->address,
-        //     'address_line_1' => $this->address_line_1,
-        //     'address_line_2' => $this->address_line_2,
-        //     'city' => $this->city,
-        //     'bank_name' => $this->bank_name,
-        //     'account_number' => $this->account_number,
-        //     'book_date' => Carbon::parse($this->book_date)->format('Y-m-d'),
-        //     'start_date' => Carbon::parse($this->start_date)->format('Y-m-d'),
-        //     'end_date' => Carbon::parse($this->end_date)->format('Y-m-d'),
-        //     'forward_balance' => $this->forward_balance,
-        //     'salary' => $this->salary,
-        //     'salary_date' => $this->salary_date,
-        // ]);
+        Passbook::create([
+            'customer_name' => $this->customer_name,
+            'address' => $this->address,
+            'address_line_1' => $this->address_line_1,
+            'address_line_2' => $this->address_line_2,
+            'city' => $this->city,
+            'bank_name' => $this->bank_name,
+            'account_number' => $this->account_number,
+            'book_date' => Carbon::parse($this->book_date)->format('Y-m-d'),
+            'start_date' => Carbon::parse($this->start_date)->format('Y-m-d'),
+            'end_date' => Carbon::parse($this->end_date)->format('Y-m-d'),
+            'forward_balance' => $this->forward_balance,
+            'salary' => $this->salary,
+            'salary_date' => $this->salary_date,
+        ]);
 
-        // $this->reset();
+        $this->reset();
 
-        // $this->passbookModal = false;
+        $this->passbookModal = false;
 
-        // $this->dispatch('pg:eventRefresh-PassbookTable');
+        $this->dispatch('pg:eventRefresh-PassbookTable');
+    }
 
+    public function test_passbook_transactions(): void
+    {
         $rambutanService = app(GenerateRambutanService::class);
 
-        $rambutanService->start_here();
+        $transactions = $rambutanService->getRecords();
     }
 }; ?>
 
 <div>
     <div class="flex gap-4 justify-end mb-4">
-        <x-wui-mini-button primary icon="plus" wire:click="create_passbook"
+        <x-wui-button primary label="Test Log Transactions" wire:click="test_passbook_transactions"
             x-tooltip.placement.bottom.raw="Test" />
     </div>
     <x-wui-modal name="passbookCreateModal" wire:model="passbookModal">
