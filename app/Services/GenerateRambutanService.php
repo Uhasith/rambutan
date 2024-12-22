@@ -6,18 +6,10 @@ use DateTime;
 use ICal\ICal;
 use DatePeriod;
 use DateInterval;
-use Codedge\Fpdf\Fpdf\Fpdf;
 use Illuminate\Support\Facades\Log;
 
 class GenerateRambutanService
 {
-    protected $fpdf;
-
-    public function __construct()
-    {
-        $this->fpdf = new Fpdf;
-    }
-
     public function start_here()
     {
         $customerName = 'MR G A KANTHA';
@@ -32,7 +24,8 @@ class GenerateRambutanService
         $endDate = '2023-12-31';
 
         $forwardBalance = 85766.70;
-        $salaryDate = 10;
+        $transactionCount = 97;
+        $salaryDate = 15;
         $salaryAmount = 50000;
 
         Log::info('Start Here');
@@ -42,16 +35,12 @@ class GenerateRambutanService
 
         $salaryDates = $this->getSalaryDepositDates($startDate, $endDate, $salaryDate, $businessDays);
 
-        $transactionDates = $this->generateTransactionDates($businessDays);
-        $lastDays = $this->getLastBusinessDaysOfMonths($businessDays);
-        $transactionDates = array_unique(array_merge($transactionDates, $lastDays));
-        sort($transactionDates);
-
         $transactions = $this->generateTransactions(
-            $transactionDates,
+            $businessDays,
             $salaryDates,
             $forwardBalance,
-            $salaryAmount
+            $salaryAmount,
+            $transactionCount
         );
 
         Log::info("Generated Transactions - Passbook Format:\n" . $this->formatTransactionsAsPassbook($transactions));
@@ -59,36 +48,59 @@ class GenerateRambutanService
         return $transactions;
     }
 
-    private function generateTransactions($transactionDates, $salaryDates, $forwardBalance, $salaryAmount)
+    private function generateTransactions($businessDays, $salaryDates, $forwardBalance, $salaryAmount, $transactionCount)
     {
         $currentBalance = $forwardBalance;
         $transactions = [];
 
-        $transactionRefs = [
-            'CWD' => '6',
-            'ATM' => '1007',
-            'INT' => '0990',
-            'WHT' => '0990',
-            'CSH' => '6435',
-            'SAL' => '5000',
-        ];
-
         // Initial forward balance
         $transactions[] = [
-            'date' => $transactionDates[0],
+            'date' => $businessDays[0],
             'depositType' => 'BF',
             'depositAmount' => $forwardBalance,
             'withdrawalAmount' => null,
             'balance' => $forwardBalance,
         ];
 
-        foreach ($transactionDates as $transactionDate) {
-            if (in_array($transactionDate, $salaryDates)) {
-                // Process salary deposit
-                $transactions[] = $this->generateSalaryTransaction($transactionDate, $salaryAmount, $currentBalance, $transactionRefs);
-                $currentBalance += $salaryAmount;
+        // Add salary transactions
+        foreach ($salaryDates as $salaryDate) {
+            $transactions[] = [
+                'date' => $salaryDate,
+                'depositType' => 'SAL',
+                'depositAmount' => $salaryAmount,
+                'withdrawalAmount' => null,
+                'balance' => $currentBalance += $salaryAmount,
+            ];
+        }
+
+        // Generate additional transactions
+        $remainingTransactions = $transactionCount - count($transactions);
+        $additionalTransactions = $this->generateAdditionalTransactions($businessDays, $salaryDates, $currentBalance, $remainingTransactions);
+
+        $transactions = array_merge($transactions, $additionalTransactions);
+
+        // Sort transactions by date
+        usort($transactions, function ($a, $b) {
+            return strtotime($a['date']) - strtotime($b['date']);
+        });
+
+        return $transactions;
+    }
+
+    private function generateAdditionalTransactions($businessDays, $salaryDates, &$currentBalance, $remainingTransactions)
+    {
+        $transactions = [];
+        $usedDates = $salaryDates; // Prevent duplicate dates with salary
+
+        while ($remainingTransactions > 0) {
+            $transactionDate = $businessDays[array_rand($businessDays)];
+
+            // Ensure no duplicate dates with salary
+            if (in_array($transactionDate, $usedDates)) {
                 continue;
             }
+
+            $usedDates[] = $transactionDate;
 
             if (rand(0, 1)) {
                 // Withdrawal
@@ -117,48 +129,11 @@ class GenerateRambutanService
                     'balance' => $currentBalance,
                 ];
             }
-        }
 
-        // Interest and tax at the end of each month
-        foreach ($this->getLastBusinessDaysOfMonths($transactionDates) as $lastDay) {
-            $interest = round($currentBalance * 0.0015, 2);
-            $currentBalance += $interest;
-
-            $transactions[] = [
-                'date' => $lastDay,
-                'depositType' => 'INT',
-                'depositAmount' => $interest,
-                'withdrawalAmount' => null,
-                'balance' => $currentBalance,
-            ];
-
-            $tax = round($interest * 0.05, 2);
-            $currentBalance -= $tax;
-
-            $transactions[] = [
-                'date' => $lastDay,
-                'depositType' => 'WHT',
-                'depositAmount' => null,
-                'withdrawalAmount' => $tax,
-                'balance' => $currentBalance,
-            ];
+            $remainingTransactions--;
         }
 
         return $transactions;
-    }
-
-    private function generateSalaryTransaction($date, $amount, $balance, $refs)
-    {
-        $balance += $amount;
-
-        return [
-            'date' => $date,
-            'depositType' => 'SAL',
-            'depositAmount' => $amount,
-            'withdrawalAmount' => null,
-            'balance' => $balance,
-            'reference' => $refs['SAL'],
-        ];
     }
 
     private function getSalaryDepositDates($startDate, $endDate, $salaryDate, $businessDays)
@@ -183,17 +158,6 @@ class GenerateRambutanService
             $date = date('Y-m-d', strtotime('-1 day', strtotime($date)));
         }
         return $date;
-    }
-
-    private function generateTransactionDates($businessDays)
-    {
-        $selectedDates = [];
-        foreach ($businessDays as $day) {
-            if (rand(0, 1)) {
-                $selectedDates[] = $day;
-            }
-        }
-        return $selectedDates;
     }
 
     private function getBankHolidaysFromICS($startDate, $endDate)
@@ -229,30 +193,6 @@ class GenerateRambutanService
             }
         }
         return $workingDays;
-    }
-
-    private function getLastBusinessDaysOfMonths($businessDays)
-    {
-        $lastDays = [];
-        $currentMonth = '';
-        $lastDate = null;
-
-        foreach ($businessDays as $day) {
-            $month = date('Y-m', strtotime($day));
-            if ($month !== $currentMonth) {
-                if ($currentMonth && $lastDate) {
-                    $lastDays[] = $lastDate;
-                }
-                $currentMonth = $month;
-            }
-            $lastDate = $day;
-        }
-
-        if (!empty($lastDate)) {
-            $lastDays[] = $lastDate;
-        }
-
-        return $lastDays;
     }
 
     private function parseICS($year)
