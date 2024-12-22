@@ -43,6 +43,8 @@ class GenerateRambutanService
 
         Log::info("Generated Transactions - Passbook Format:\n" . $this->formatTransactionsAsPassbook($transactions));
 
+        Log::info("Transactions Count: " . count($transactions));
+
         return $transactions;
     }
 
