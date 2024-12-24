@@ -20,6 +20,11 @@ class Passbook extends Model
         'forward_balance',
         'salary',
         'salary_date',
-        'transactions_count'
+        'transactions_count',
+        'transactions_meta_data'
+    ];
+
+    protected $casts = [
+        'transactions_meta_data' => 'array'
     ];
 }

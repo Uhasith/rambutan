@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('address_line_1');
             $table->string('address_line_2')->nullable();
             $table->string('city');
+            $table->json('transactions_meta_data')->nullable();
             $table->timestamps();
         });
     }

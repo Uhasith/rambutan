@@ -10,22 +10,14 @@ use Illuminate\Support\Facades\Log;
 
 class GenerateRambutanService
 {
-    public function getRecords()
+    public function getRecords($start_date, $end_date, $forward_balance, $transaction_count, $salary_date = null, $salary_amount = null): array
     {
-        $customerName = 'MR G A KANTHA';
-        $address = 'NO. 33/2/B,';
-        $address_line_1 = 'EKSATH SUBASADAKA ROAD,';
-        $address_line_2 = 'PAMUNUWA,';
-        $city = 'MAHARAGAMA';
-        $bookDate = '19-08-2023';
-        $account_number = '8023485507';
-
-        $startDate = '2023-01-01';
-        $endDate = '2024-12-31';
-        $forwardBalance = 42883.35;
-        $transactionCount = 150;
-        $salaryDate = 15; // Can be null or empty
-        $salaryAmount = 50000; // Can be null or empty
+        $startDate = $start_date;
+        $endDate = $end_date;
+        $forwardBalance =  (float) $forward_balance;
+        $transactionCount = (int) $transaction_count;
+        $salaryDate = (int) $salary_date ?? null; // Can be null or empty
+        $salaryAmount = (float) $salary_amount ?? null; // Can be null or empty
 
         $GLOBALS['bankHolidays'] = $this->getBankHolidaysFromICS($startDate, $endDate);
         $businessDays = $this->getWorkingDaysFromICS($startDate, $endDate);
@@ -183,7 +175,7 @@ class GenerateRambutanService
                 ];
             } elseif ($transactionType === 2) {
                 $amount = $this->generateRealisticATMWithdrawal();
-                $serviceFee = 5;
+                $serviceFee = 5; // ATM withdrawal fee
                 $totalDeduction = $amount + $serviceFee;
 
                 if ($currentBalance - $totalDeduction < 0) {

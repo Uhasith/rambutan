@@ -51,7 +51,11 @@ new class extends Component {
     {
         $this->validate();
 
-        Passbook::create([
+        $bookDate = Carbon::parse($this->book_date)->format('Y-m-d');
+        $startDate = Carbon::parse($this->start_date)->format('Y-m-d');
+        $endDate = Carbon::parse($this->end_date)->format('Y-m-d');
+
+        $passbook = Passbook::create([
             'customer_name' => $this->customer_name,
             'address' => $this->address,
             'address_line_1' => $this->address_line_1,
@@ -59,27 +63,35 @@ new class extends Component {
             'city' => $this->city,
             'bank_name' => $this->bank_name,
             'account_number' => $this->account_number,
-            'book_date' => Carbon::parse($this->book_date)->format('Y-m-d'),
-            'start_date' => Carbon::parse($this->start_date)->format('Y-m-d'),
-            'end_date' => Carbon::parse($this->end_date)->format('Y-m-d'),
+            'book_date' => $bookDate,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'forward_balance' => $this->forward_balance,
             'salary' => $this->salary,
             'salary_date' => $this->salary_date,
             'transactions_count' => $this->transactions_count,
         ]);
 
+        $transactions = $this->generate_rambutan_transactions($startDate, $endDate, $this->forward_balance, $this->transactions_count, $this->salary_date, $this->salary);
+
+        $passbook->transactions_meta_data = $transactions;
+
+        $passbook->save();
+
+        $this->dispatch('pg:eventRefresh-PassbookTable');
+
         $this->reset();
 
         $this->passbookModal = false;
-
-        $this->dispatch('pg:eventRefresh-PassbookTable');
     }
 
-    public function test_passbook_transactions(): void
+    public function generate_rambutan_transactions($start_date, $end_date, $forward_balance, $transaction_count, $salary_date = null, $salary_amount = null): array
     {
         $rambutanService = app(GenerateRambutanService::class);
 
-        $transactions = $rambutanService->getRecords();
+        $transactions = $rambutanService->getRecords($start_date, $end_date, $forward_balance, $transaction_count, $salary_date = null, $salary_amount = null);
+
+        return $transactions;
     }
 }; ?>
 
