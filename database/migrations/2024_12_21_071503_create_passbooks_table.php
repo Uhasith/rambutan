@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('forward_balance');
             $table->integer('salary')->nullable();
             $table->integer('salary_date')->nullable();
+            $table->integer('transactions_count');
             $table->string('address');
             $table->string('address_line_1');
             $table->string('address_line_2')->nullable();

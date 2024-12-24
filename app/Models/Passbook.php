@@ -20,5 +20,6 @@ class Passbook extends Model
         'forward_balance',
         'salary',
         'salary_date',
+        'transactions_count'
     ];
 }
