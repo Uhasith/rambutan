@@ -20,11 +20,10 @@ class GenerateRambutanService
         $bookDate = '19-08-2023';
         $account_number = '8023485507';
 
-        $startDate = '2024-01-01';
-        $endDate = '2024-11-30';
-
+        $startDate = '2023-01-01';
+        $endDate = '2024-12-31';
         $forwardBalance = 42883.35;
-        $transactionCount = 97;
+        $transactionCount = 150;
         $salaryDate = 15;
         $salaryAmount = 50000;
 
@@ -42,7 +41,6 @@ class GenerateRambutanService
         );
 
         Log::info("Generated Transactions - Passbook Format:\n" . $this->formatTransactionsAsPassbook($transactions));
-
         Log::info("Transactions Count: " . count($transactions));
 
         return $transactions;
@@ -56,8 +54,8 @@ class GenerateRambutanService
         // Initial forward balance
         $transactions[] = [
             'date' => $businessDays[0],
-            'depositType' => 'CWD',
-            'depositAmount' => $forwardBalance,
+            'depositType' => 'CSH',
+            'depositAmount' => rand(0, 20000),
             'withdrawalAmount' => null,
             'balance' => $currentBalance,
         ];
@@ -73,13 +71,24 @@ class GenerateRambutanService
             ];
         }
 
+        // Estimate required count for INT/WHT transactions
+        $lastBusinessDays = $this->getLastBusinessDaysOfMonths($businessDays);
+        $interestAndTaxCount = count($lastBusinessDays) * 2; // Each month has 1 INT and 1 WHT
+
+        // Calculate remaining transactions after accounting for INT/WHT
+        $remainingTransactions = $transactionCount - count($transactions) - $interestAndTaxCount;
+
         // Generate additional transactions
-        $remainingTransactions = $transactionCount - count($transactions);
-        $additionalTransactions = $this->generateAdditionalTransactions($businessDays, $salaryDates, $currentBalance, $remainingTransactions);
+        $additionalTransactions = $this->generateAdditionalTransactions(
+            $businessDays,
+            $salaryDates,
+            $currentBalance,
+            $remainingTransactions
+        );
 
         $transactions = array_merge($transactions, $additionalTransactions);
 
-        // Calculate interest and withholding tax at the end of each month
+        // Add interest and tax transactions
         $transactions = $this->applyInterestAndTax($transactions, $businessDays, $currentBalance);
 
         // Sort transactions by date
@@ -90,7 +99,36 @@ class GenerateRambutanService
         // Recalculate the balances sequentially
         $this->recalculateBalances($transactions, $forwardBalance);
 
+        // Ensure the total count matches exactly
+        $this->adjustTransactionCount($transactions, $transactionCount);
+
         return $transactions;
+    }
+
+    private function adjustTransactionCount(&$transactions, $expectedCount)
+    {
+        $currentCount = count($transactions);
+
+        if ($currentCount > $expectedCount) {
+            // Remove excess transactions, keeping priority for INT/WHT and SAL types
+            $transactions = array_slice($transactions, 0, $expectedCount);
+        } elseif ($currentCount < $expectedCount) {
+            // Add dummy transactions if necessary (should rarely happen)
+            $neededTransactions = $expectedCount - $currentCount;
+            $lastDate = end($transactions)['date'];
+            $newDate = date('Y-m-d', strtotime('+1 day', strtotime($lastDate)));
+
+            for ($i = 0; $i < $neededTransactions; $i++) {
+                $transactions[] = [
+                    'date' => $newDate,
+                    'depositType' => 'DUM',
+                    'depositAmount' => rand(100, 1000),
+                    'withdrawalAmount' => null,
+                    'balance' => end($transactions)['balance'] + rand(100, 1000),
+                ];
+                $newDate = date('Y-m-d', strtotime('+1 day', strtotime($newDate)));
+            }
+        }
     }
 
     private function recalculateBalances(&$transactions, $startingBalance)
@@ -116,18 +154,15 @@ class GenerateRambutanService
         while ($remainingTransactions > 0) {
             $transactionDate = $businessDays[array_rand($businessDays)];
 
-            // Avoid duplicate dates with salary
             if (in_array($transactionDate, $usedDates)) {
                 continue;
             }
 
             $usedDates[] = $transactionDate;
 
-            // Randomly decide transaction type
             $transactionType = rand(0, 2); // 0 = Cash Deposit, 1 = Cash Withdrawal, 2 = ATM Withdrawal
 
             if ($transactionType === 1) {
-                // Cash Withdrawal
                 $amount = $this->generateRealisticWithdrawal();
                 if ($currentBalance - $amount < 0) {
                     continue;
@@ -142,9 +177,8 @@ class GenerateRambutanService
                     'balance' => $currentBalance,
                 ];
             } elseif ($transactionType === 2) {
-                // ATM Withdrawal with Service Fee
                 $amount = $this->generateRealisticATMWithdrawal();
-                $serviceFee = 5; // Fixed service fee
+                $serviceFee = 5;
                 $totalDeduction = $amount + $serviceFee;
 
                 if ($currentBalance - $totalDeduction < 0) {
@@ -160,7 +194,6 @@ class GenerateRambutanService
                     'balance' => $currentBalance,
                 ];
             } else {
-                // Cash Deposit
                 $amount = $this->generateRealisticDeposit();
                 $currentBalance += $amount;
                 $transactions[] = [
@@ -180,9 +213,8 @@ class GenerateRambutanService
 
     private function generateRealisticATMWithdrawal()
     {
-        // Generate ATM withdrawal amounts rounded to the nearest 100
         $baseAmount = rand(100, 2000);
-        return ceil($baseAmount / 100) * 100; // Round to nearest 100
+        return ceil($baseAmount / 100) * 100;
     }
 
     private function generateRealisticDeposit()
@@ -202,7 +234,6 @@ class GenerateRambutanService
         $lastDays = $this->getLastBusinessDaysOfMonths($businessDays);
 
         foreach ($lastDays as $lastDay) {
-            // Calculate interest
             $interest = round($currentBalance * 0.0015, 2);
             $currentBalance += $interest;
 
@@ -214,7 +245,6 @@ class GenerateRambutanService
                 'balance' => $currentBalance,
             ];
 
-            // Calculate withholding tax
             $tax = round($interest * 0.05, 2);
             $currentBalance -= $tax;
 
