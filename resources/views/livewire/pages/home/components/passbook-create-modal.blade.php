@@ -75,32 +75,21 @@ new class extends Component {
             'transactions_count' => $this->transactions_count,
         ]);
 
-        $transactions = $this->generate_rambutan_transactions($startDate, $endDate, $this->forward_balance, $this->transactions_count, $salaryDate, $salary);
+        $rambutanService = app(GenerateRambutanService::class);
+
+        $transactions = $rambutanService->getRecords($startDate, $endDate, $this->forward_balance, $this->transactions_count, $salaryDate, $salary);
 
         $passbook->transactions_meta_data = $transactions ?? [];
 
         $passbook->save();
 
+        $this->passbookModal = false;
         $this->reset();
-
         $this->dispatch('pg:eventRefresh-PassbookTable');
-    }
-
-    public function generate_rambutan_transactions($start_date, $end_date, $forward_balance, $transaction_count, $salary_date = null, $salary_amount = null): array
-    {
-        $rambutanService = app(GenerateRambutanService::class);
-
-        $transactions = $rambutanService->getRecords($start_date, $end_date, $forward_balance, $transaction_count, $salary_date = null, $salary_amount = null);
-
-        return $transactions;
     }
 }; ?>
 
 <div>
-    <div class="flex gap-4 justify-end mb-4">
-        <x-wui-button primary label="Test Log Transactions" wire:click="test_passbook_transactions"
-            x-tooltip.placement.bottom.raw="Test" />
-    </div>
     <x-wui-modal name="passbookCreateModal" wire:model="passbookModal" x-on:close='$wire.resetForm'>
         <x-wui-card title="New PassBook Create">
             <form wire:submit="create_passbook">
