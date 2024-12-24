@@ -20,7 +20,7 @@ new class extends Component {
     public $salary = '';
     public $salary_date = '';
     public $transactions_count = '';
-    public $passbookModal;
+    public $passbookModal = false;
 
     public function rules()
     {
@@ -28,6 +28,7 @@ new class extends Component {
             'customer_name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
             'address_line_1' => ['required', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'bank_name' => ['required', 'string', 'max:255'],
             'account_number' => ['required', 'string', 'max:255'],
@@ -54,6 +55,8 @@ new class extends Component {
         $bookDate = Carbon::parse($this->book_date)->format('Y-m-d');
         $startDate = Carbon::parse($this->start_date)->format('Y-m-d');
         $endDate = Carbon::parse($this->end_date)->format('Y-m-d');
+        $salary = !empty($this->salary) && $this->salary != 0 ? (float) $this->salary : null;
+        $salaryDate = !empty($this->salary_date) && $this->salary_date != 0 ? (int) $this->salary_date : null;
 
         $passbook = Passbook::create([
             'customer_name' => $this->customer_name,
@@ -67,22 +70,20 @@ new class extends Component {
             'start_date' => $startDate,
             'end_date' => $endDate,
             'forward_balance' => $this->forward_balance,
-            'salary' => $this->salary,
-            'salary_date' => $this->salary_date,
+            'salary' => $salary,
+            'salary_date' => $salaryDate,
             'transactions_count' => $this->transactions_count,
         ]);
 
-        $transactions = $this->generate_rambutan_transactions($startDate, $endDate, $this->forward_balance, $this->transactions_count, $this->salary_date, $this->salary);
+        $transactions = $this->generate_rambutan_transactions($startDate, $endDate, $this->forward_balance, $this->transactions_count, $salaryDate, $salary);
 
-        $passbook->transactions_meta_data = $transactions;
+        $passbook->transactions_meta_data = $transactions ?? [];
 
         $passbook->save();
 
-        $this->dispatch('pg:eventRefresh-PassbookTable');
-
         $this->reset();
 
-        $this->passbookModal = false;
+        $this->dispatch('pg:eventRefresh-PassbookTable');
     }
 
     public function generate_rambutan_transactions($start_date, $end_date, $forward_balance, $transaction_count, $salary_date = null, $salary_amount = null): array
