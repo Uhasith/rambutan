@@ -24,13 +24,16 @@ class GenerateRambutanService
         $endDate = '2024-12-31';
         $forwardBalance = 42883.35;
         $transactionCount = 150;
-        $salaryDate = 15;
-        $salaryAmount = 50000;
+        $salaryDate = 15; // Can be null or empty
+        $salaryAmount = 50000; // Can be null or empty
 
         $GLOBALS['bankHolidays'] = $this->getBankHolidaysFromICS($startDate, $endDate);
         $businessDays = $this->getWorkingDaysFromICS($startDate, $endDate);
 
-        $salaryDates = $this->getSalaryDepositDates($startDate, $endDate, $salaryDate, $businessDays);
+        $salaryDates = [];
+        if (!empty($salaryDate) && !empty($salaryAmount)) {
+            $salaryDates = $this->getSalaryDepositDates($startDate, $endDate, $salaryDate, $businessDays);
+        }
 
         $transactions = $this->generateTransactions(
             $businessDays,
@@ -60,15 +63,17 @@ class GenerateRambutanService
             'balance' => $currentBalance,
         ];
 
-        // Add salary transactions
-        foreach ($salaryDates as $salaryDate) {
-            $transactions[] = [
-                'date' => $salaryDate,
-                'depositType' => 'SAL',
-                'depositAmount' => $salaryAmount,
-                'withdrawalAmount' => null,
-                'balance' => $currentBalance += $salaryAmount,
-            ];
+        // Add salary transactions if applicable
+        if (!empty($salaryDates) && !empty($salaryAmount)) {
+            foreach ($salaryDates as $salaryDate) {
+                $transactions[] = [
+                    'date' => $salaryDate,
+                    'depositType' => 'SAL',
+                    'depositAmount' => $salaryAmount,
+                    'withdrawalAmount' => null,
+                    'balance' => $currentBalance += $salaryAmount,
+                ];
+            }
         }
 
         // Estimate required count for INT/WHT transactions

@@ -35,8 +35,8 @@ new class extends Component {
             'start_date' => ['required', 'date', 'max:255'],
             'end_date' => ['required', 'date', 'max:255'],
             'forward_balance' => ['required', 'numeric'],
-            'salary' => ['required', 'numeric'],
-            'salary_date' => ['required', 'numeric', 'max:31'],
+            'salary' => ['nullable', 'numeric', 'required_with:salary_date'],
+            'salary_date' => ['nullable', 'numeric', 'min:1', 'max:31', 'required_with:salary'],
             'transactions_count' => ['required', 'numeric'],
         ];
     }
