@@ -4,6 +4,7 @@ use Livewire\Volt\Component;
 use App\Models\Passbook;
 use Carbon\Carbon;
 use App\Services\GenerateRambutanService;
+use Codedge\Fpdf\Fpdf\Fpdf;
 
 new class extends Component {
     public $customer_name = '';
@@ -19,7 +20,7 @@ new class extends Component {
     public $forward_balance = '';
     public $salary = '';
     public $salary_date = '';
-    public $transactions_count = '';
+    public $transactions_count = 97;
     public $passbookModal = false;
 
     public function rules()
@@ -83,9 +84,27 @@ new class extends Component {
 
         $passbook->save();
 
-        $this->passbookModal = false;
-        $this->reset();
-        $this->dispatch('pg:eventRefresh-PassbookTable');
+        $customer_data = array(
+            'name' => $this->customer_name,
+            'address' => $this->address,
+            'address_line_1' => $this->address_line_1,
+            'address_line_2' => $this->address_line_2,
+            'city' => $this->city,
+            'account_number' => $this->account_number,
+        );
+
+        if($this->bank_name == 'Commercial'){
+            $this->generate_combnk($transactions, $customer_data);
+        }
+
+        // $this->passbookModal = false;
+        // $this->reset();
+        // $this->dispatch('pg:eventRefresh-PassbookTable');
+    }
+
+    function generate_combnk($transactions, $customer_data) {
+        $pdf = PDF::loadView('pdf.com', ['transactions' => $transactions, 'customer' => $customer_data]);
+        $pdf->save($customer_data['account_number'] . '.pdf');
     }
 }; ?>
 

@@ -23,3 +23,7 @@ Route::view('profile', 'profile')
 Volt::route('/home', 'pages.home.home')->name('home');
 
 require __DIR__.'/auth.php';
+
+Route::get('/test', function(){
+
+});
