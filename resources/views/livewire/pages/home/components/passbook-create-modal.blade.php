@@ -97,15 +97,21 @@ new class extends Component {
             $this->generate_combnk($transactions, $customer_data);
         }
 
-        // $this->passbookModal = false;
-        // $this->reset();
-        // $this->dispatch('pg:eventRefresh-PassbookTable');
+        $this->passbookModal = false;
+        $this->reset();
+        $this->dispatch('pg:eventRefresh-PassbookTable');
     }
 
     function generate_combnk($transactions, $customer_data) {
         $pdf = PDF::loadView('pdf.com', ['transactions' => $transactions, 'customer' => $customer_data]);
         $pdf->save($customer_data['account_number'] . '.pdf');
+        return response()->streamDownload(
+            fn() => print($pdf->output()), 
+            $customer_data['account_number'] . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
     }
+    
 }; ?>
 
 <div>

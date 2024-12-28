@@ -3,6 +3,8 @@
 use Livewire\Volt\Volt;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PassbookController;
+
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -21,6 +23,8 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 Volt::route('/home', 'pages.home.home')->name('home');
+
+Route::get('/passbook/{id}/view-pdf', [PassbookController::class, 'viewPdf'])->name('passbook.view_pdf');
 
 require __DIR__.'/auth.php';
 
