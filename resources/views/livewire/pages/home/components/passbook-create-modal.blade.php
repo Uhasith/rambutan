@@ -95,6 +95,16 @@ new class extends Component {
 
         if($this->bank_name == 'Commercial'){
             $this->generate_combnk($transactions, $customer_data);
+        }elseif ($this->bank_name == 'BOC') {
+            $this->generate_boc($transactions, $customer_data);
+        }elseif ($this->bank_name == 'Seylan') {
+            $this->generate_seylan($transactions, $customer_data);
+        }elseif ($this->bank_name == 'Sampath') {
+            $this->generate_sampath($transactions, $customer_data);
+        }elseif ($this->bank_name == 'NSB') {
+            $this->generate_nsb($transactions, $customer_data);
+        }else{
+            
         }
 
         $this->passbookModal = false;
@@ -111,6 +121,47 @@ new class extends Component {
             ['Content-Type' => 'application/pdf']
         );
     }
+
+    function generate_seylan($transactions, $customer_data) {
+        $pdf = PDF::loadView('pdf.seylan', ['transactions' => $transactions, 'customer' => $customer_data]);
+        $pdf->save($customer_data['account_number'] . '.pdf');
+        return response()->streamDownload(
+            fn() => print($pdf->output()), 
+            $customer_data['account_number'] . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
+    function generate_boc($transactions, $customer_data) {
+        $pdf = PDF::loadView('pdf.boc', ['transactions' => $transactions, 'customer' => $customer_data]);
+        $pdf->save($customer_data['account_number'] . '.pdf');
+        return response()->streamDownload(
+            fn() => print($pdf->output()), 
+            $customer_data['account_number'] . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+    
+    function generate_sampath($transactions, $customer_data) {
+        $pdf = PDF::loadView('pdf.sampath', ['transactions' => $transactions, 'customer' => $customer_data]);
+        $pdf->save($customer_data['account_number'] . '.pdf');
+        return response()->streamDownload(
+            fn() => print($pdf->output()), 
+            $customer_data['account_number'] . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
+    function generate_nsb($transactions, $customer_data) {
+        $pdf = PDF::loadView('pdf.nsb', ['transactions' => $transactions, 'customer' => $customer_data]);
+        $pdf->save($customer_data['account_number'] . '.pdf');
+        return response()->streamDownload(
+            fn() => print($pdf->output()), 
+            $customer_data['account_number'] . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
     
 }; ?>
 

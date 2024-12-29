@@ -24,8 +24,19 @@ class PassbookController extends Controller
         'city' => $passbook->city,
         'account_number' => $passbook->account_number,
     ];
+    if ($passbook->bank_name == 'Commercial') {
+        $pdf = PDF::loadView('pdf.com', ['transactions' => $transactions, 'customer' => $customer_data]);
+    }elseif ($passbook->bank_name == 'BOC') {
+        $pdf = PDF::loadView('pdf.boc', ['transactions' => $transactions, 'customer' => $customer_data]);
+    }elseif ($passbook->bank_name == 'Seylan') {
+        $pdf = PDF::loadView('pdf.seylan', ['transactions' => $transactions, 'customer' => $customer_data]);
+    }elseif ($passbook->bank_name == 'Sampath') {
+        $pdf = PDF::loadView('pdf.sampath', ['transactions' => $transactions, 'customer' => $customer_data]);
+    }elseif ($passbook->bank_name == 'NSB') {
+        $pdf = PDF::loadView('pdf.nsb', ['transactions' => $transactions, 'customer' => $customer_data]);
+    }else{
 
-    $pdf = PDF::loadView('pdf.com', ['transactions' => $transactions, 'customer' => $customer_data]);
+    }
 
     return $pdf->stream('passbook_'.$passbook->id.'.pdf'); // Stream PDF to the browser
 }

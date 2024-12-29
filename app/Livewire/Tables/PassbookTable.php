@@ -45,7 +45,6 @@ final class PassbookTable extends PowerGridComponent
             ->add('id')
             ->add('address')
             ->add('address_line_1')
-            ->add('address_line_2')
             ->add('city')
             ->add('account_number')
             ->add('created_at');
@@ -63,10 +62,6 @@ final class PassbookTable extends PowerGridComponent
                 ->sortable()
                 ->searchable(),
 
-            Column::make('Address line 2', 'address_line_2')
-                ->sortable()
-                ->searchable(),
-
             Column::make('City', 'city')
                 ->sortable()
                 ->searchable(),
@@ -74,9 +69,6 @@ final class PassbookTable extends PowerGridComponent
             Column::make('Account number', 'account_number')
                 ->sortable()
                 ->searchable(),
-
-            Column::make('Created at', 'created_at_formatted', 'created_at')
-                ->sortable(),
 
             Column::make('Created at', 'created_at')
                 ->sortable()
