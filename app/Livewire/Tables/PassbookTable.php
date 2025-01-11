@@ -43,6 +43,7 @@ final class PassbookTable extends PowerGridComponent
     {
         return PowerGrid::fields()
             ->add('id')
+            ->add('bank_name')
             ->add('address')
             ->add('address_line_1')
             ->add('city')
@@ -54,6 +55,9 @@ final class PassbookTable extends PowerGridComponent
     {
         return [
             Column::make('Id', 'id'),
+            Column::make('bank', 'bank_name')
+                ->sortable()
+                ->searchable(),
             Column::make('Address', 'address')
                 ->sortable()
                 ->searchable(),
