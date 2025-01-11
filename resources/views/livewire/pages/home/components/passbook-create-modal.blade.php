@@ -135,6 +135,7 @@ new class extends Component {
     function generate_boc($transactions, $customer_data) {
         $pdf = PDF::loadView('pdf.boc', ['transactions' => $transactions, 'customer' => $customer_data]);
         $pdf->save($customer_data['account_number'] . '.pdf');
+        
         return response()->streamDownload(
             fn() => print($pdf->output()), 
             $customer_data['account_number'] . '.pdf',
