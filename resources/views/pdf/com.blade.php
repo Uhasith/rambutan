@@ -2,15 +2,17 @@
     .passbook-details{
         margin-bottom: 35px;
         float: right;
+        font-size: 12px;
     }
     table{
         width: 100%;
     }
     table.transections td{
         padding-bottom: 5px;
+        font-size: 9px;
     }
     table.transections td.date{
-        width: 20%;
+        width: 20px;
     }
     table.passbook-details td{
         width: 25%;
@@ -35,9 +37,11 @@
  
 
     <table class="transections">
+        print_r($transactions);
         @foreach ($transactions as $item)
             {{json_encode($item)}}
             <tr>
+                <td class="id"></td>
                 <td class="date">{{$item['date']}}</td>
                 <td class="type">{{$item['depositType']}}</td>
                 <td class="amount">{{$item['depositAmount']}}</td>
