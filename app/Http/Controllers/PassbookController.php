@@ -36,9 +36,10 @@ class PassbookController extends Controller
         ];
 
         if ($passbook->bank_name == 'Commercial') {
-            $pdf = PDF::loadView('pdf.com', ['transactions' => $transactions, 'customer' => $customer_data]);
+            $this->com_view_pdf($transactions, $customer_data, $passbook->date);
+            // $pdf = PDF::loadView('pdf.com', ['transactions' => $transactions, 'customer' => $customer_data]);
         } elseif ($passbook->bank_name == 'BOC') {
-            $this->boc_view_pdf($transactions, $customer_data, $passbook->date);
+            
             // $pdf = PDF::loadView('pdf.boc', ['transactions' => $transactions, 'customer' => $customer_data]);
         } elseif ($passbook->bank_name == 'Seylan') {
             $pdf = PDF::loadView('pdf.seylan', ['transactions' => $transactions, 'customer' => $customer_data]);
@@ -52,7 +53,7 @@ class PassbookController extends Controller
         return $pdf->stream('passbook_' . $passbook->id . '.pdf'); // Stream PDF to the browser
     }
 
-    function boc_view_pdf($transactions, $customer, $date): void
+    function com_view_pdf($transactions, $customer, $date): void
     {
         $fpdf = new \Codedge\Fpdf\Fpdf\Fpdf();
         $fpdf->AddPage();
