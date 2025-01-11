@@ -59,6 +59,8 @@ class PassbookController extends Controller
         $fpdf->AddPage();
         $fpdf->SetFont('Courier', 'B', 12);
 
+        $leftPadding = 30;
+
         $fpdf->Cell(10, 5, '', 0, 0, 'L');
         $fpdf->Cell(140, 5, $customer['name'], 0, 0, 'L');
         $fpdf->Cell(60, 5, date('d-m-Y', strtotime($date)), 0, 0, 'L');
@@ -84,13 +86,15 @@ class PassbookController extends Controller
         foreach ($transactions as $index => $transaction) {
 
             // $fpdf->SetFont('Calibri', '', 9);
-            $fpdf->Cell(15, 5, $index + 1, 0, 0, 'R');
-            $fpdf->Cell(25, 5, date('d-m-y', strtotime($date)), 0, 0, 'R');
-            $fpdf->Cell(17, 5, $this->refs[$transaction['depositType']] ?? '', 0, 0, 'R');
-            $fpdf->Cell(25, 5, $transaction['depositType'], 0, 0, 'R');
-            $fpdf->Cell(30, 5, $transaction['withdrawalAmount'] ? str_pad(number_format($transaction['withdrawalAmount'], 2), 10, "*", STR_PAD_LEFT) : '', 0, 0, 'R');
-            $fpdf->Cell(30, 5, $transaction['depositAmount'] ? str_pad(number_format($transaction['depositAmount'], 2), 10, "*", STR_PAD_LEFT) : '', 0, 0, 'R');
-            $fpdf->Cell(35, 5, str_pad(number_format($transaction['balance'], 2), 10, "*", STR_PAD_LEFT), 0, 0, 'R');
+            $fpdf->Cell($leftPadding, 5, '', 0, 0);
+            
+            $fpdf->Cell(15, 5, $index + 1, 0, 0, 'C');
+            $fpdf->Cell(15, 5, date('d-m-y', strtotime($transaction['date'])), 0, 0, 'R');
+            $fpdf->Cell(10, 5, $this->refs[$transaction['depositType']] ?? '', 0, 0, 'R');
+            $fpdf->Cell(15, 5, $transaction['depositType'], 0, 0, 'L');
+            $fpdf->Cell(25, 5, $transaction['withdrawalAmount'] ? str_pad(number_format($transaction['withdrawalAmount'], 2), 10, "*", STR_PAD_LEFT) : '', 0, 0, 'R');
+            $fpdf->Cell(25, 5, $transaction['depositAmount'] ? str_pad(number_format($transaction['depositAmount'], 2), 10, "*", STR_PAD_LEFT) : '', 0, 0, 'R');
+            $fpdf->Cell(25, 5, str_pad(number_format($transaction['balance'], 2), 10, "*", STR_PAD_LEFT), 0, 0, 'R');
             $fpdf->Ln();
         }
         $fpdf->output();
